@@ -1,0 +1,245 @@
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <title>Space Voyage</title>
+  <style>
+        h1 {
+            text-align: center;
+            color: white;
+        }
+        body {
+            background-color: #800080;
+            padding: 25;
+        }
+        #body {
+             background-color: #EE82EE;
+             color: white;
+             padding: 22px;
+        }
+        #innerbody {
+            background-color: white;
+            color: black;
+            padding: 25px;
+        }
+        #script {
+            text-align: center;
+        }
+    </style>
+  <script type="text/javascript" src="processing.js"></script>
+</head>
+<body>
+    <h1>Space Voyage</h1>
+    <div id=body>
+        <h2>Requirements</h2>
+        <div id=innerbody>
+            <ul>
+                <li>This is a single player game.</li>
+                <li>The player can move the spaceship up using the UP arrow key, left using the LEFT arrow key and right using the RIGHT arrow key.</li>
+                <li>The object of the game is to safely get through the various stages  using the spaceship.</li>
+                <li>The game will have asteroids moving towards the player.</li>
+                <li>The player can shoot and destroy the asteroid that is directly above them by clicking the mouse.</li>
+                <li>The number of asteroids increases as the player clears each stage.</li>
+                <li>The player will progress as long as they do not collide with the asteroids.</li>
+                <li>The game will be over when the player either collides with an asteroid or clears the third stage.</li>
+                <li> A different message will appear on the screen depending on which one of the previous scenario occurs.</li>
+                <li>The current stage is displayed at the top right-hand corner of the screen.</li>
+            </ul>
+        </div>
+        <br>
+  <!--COPY AND PASTE YOUR PROCESSING CODE BETWEEN THE SCRIPT TAGS-->
+  <div id=script>
+  <script type="text/processing">
+    /* Summative Game
+    Soumen Nath
+    2016-01-25 */
+    PImage img; // Defines Image
+    int status = 0; // Variable that contains the status
+    int score = 0; // Variable that contains the score
+    int bulletx = 399; // Variable that contains the x position of the bullet
+    int bullety = 670; // Variable that contains the y position of the bullet
+    int stage = 1; // Variable that contains the stage number
+    boolean bulletFired = false; //Conditional Variable, starts as false
+    int rocketx = 400; // Variable that contains the x position of the rocket
+    int rockety = 675; // Variable that contains the y position of the rocket
+    int speedx = 0; // Speed variable for the rocket
+    int speedy = 0; // Speed variable for the rocket
+    int number = 15;    // number of asteroids
+      // arrays for position and speed of each asteroid
+      float x[] = new float[number*4 + 1];
+      float y[] = new float[number*4 + 1];
+      float speedY[] = new float[number*4 + 1];
+      
+      void setup() {
+        size(800, 800); // Size of the canvas
+        img = loadImage ("outer-space-wallpaper-pictures.jpg"); // Background for the game
+        background(0);  // black background
+        // set random starting positions and vertical speed
+        for (int i=0; i<number; i++) {
+          x[i] = random(0, width);
+          y[i] = (0);
+          speedY[i] = random(0, 2);
+        }
+      }
+      
+      void draw() {   
+        if (status==0) {
+          background(0); // Black background
+          textSize (50); // Size of the text
+          fill(#F9FA03);  //Colour of the text is yellow
+          text("Click To Start", 10, 40); // Displays start at the beginning
+          score = 0; // Makes the score 0 at the beginning
+        } 
+        else if (status == 1) {
+           image(img, 0, 0); //Changes the background to the image
+           fill(#1FED1D); // Color of the text is green
+           textSize (50); // Size of the text
+           text(stage, 700, 50); //Displays the stage
+           rocket(); // Display the rocket
+           for (int i=0; i<number; i++) {  // loop for each asteroid
+              speedY[i] = speedY[i] + 0.01;    // slow acceleration in y direction
+              y[i] = y[i] + speedY[i];
+              asteroid(x[i], y[i]);    // draw an asteroid
+              if (y[i]>height) {    // if fallen off the bottom, reset to the top
+                y[i] = 0;
+                x[i] = random(0, width);
+                speedY[i] = random(0, 2);
+              }
+              if (number>40 && rockety + 75 < 0) { // If the rocket goes past the top of the canvas at the final stage
+                status = 3; // Make the status equal to 3
+                // reset the following so everything is back to how it was in the beginning
+                number = 15; 
+                stage = 1;
+                rocketx = 400;
+                rockety = 675;
+                for (int j=0; j<number; j++) {
+                x[j] = random(0, width);
+                y[j] = (0);
+                speedY[j] = random(0, 2); 
+                }  
+              } 
+              if (rockety + 75 < 0) { // If the rocket goes past the top of the canvas
+                number = number + 15; // Increase the number of asteroids by 15
+                // reset the following so everything (except for the number of asteroids and the stage) is back to how it was in the beginning
+                rockety = 675;
+                for (int k=0; k<number; k++) {
+                x[k] = random(0, width);
+                y[k] = (0);
+                speedY[k] = random(0, 2); 
+                }
+                stage = stage + 1; // Increase the stage number by 1 each time
+             }
+             if (rocketx > width) {    // The object has moved off the canvas to the right
+               rocketx = 0;
+             }
+             if (rocketx < 0) {    // The object has moved off the canvas to the left
+               rocketx = width;
+             }
+             if ((abs(x[i]-bulletx)<20) && (abs(y[i]-bullety)<10)) { // If a bullet collides with an asteroid then make both of them disappear
+               bullety = -10;
+               y[i] = -50;
+            }
+            if ((abs(x[i]-rocketx)<30) && (abs(y[i]-rockety)<10) || (abs(x[i]-(rocketx + 35))<15) && (abs((rockety + 55) - y[i])<10) ||  (abs((rocketx - 35)-x[i])<15) && (abs((rockety + 55) - y[i])<10))  { // If the rocket collides with an asteroid then reset the following (except for status) so everything is back to how it was in the beginning
+              for (int l=0; l<number; l++) {
+                 x[l] = random(0, width);
+                 y[l] = (0);
+                 speedY[l] = random(0, 2);
+              }
+             rocketx = 400;
+             rockety = 675;
+             status = 2;
+             number = 15;
+             stage = 1;
+            }
+          }
+        }
+        else if (status == 2) { 
+               background(0); // Black background
+               fill(#F9FA03);  //Colour of the text is yellow
+               textSize (50); //Size of the text
+               // Displays the following messages
+               text("You lose!", 10, 40);
+               text("Click Here To Start Again", 10, 120);
+               text("Score:", 500, 40);
+               text(score, 650, 40); // Displays the current score
+          }   
+          else if (status == 3) { 
+               background(0); // Black background
+               fill(#F9FA03);  //Colour of the text is yellow
+               textSize (50); //Size of the text
+               // Displays the following messages
+               text("You Win!", 10, 40);
+               text("Click Here To Start Again", 10, 120);
+                text("Score:", 500, 40);
+               text(score, 650, 40); // Displays the current score
+          }   
+          if (bulletFired) { 
+            bullet(); // When the status is 1 and the mouse is clicked, create a bullet
+          } 
+      }   
+      
+     void rocket() {
+         fill(252,0,0); // Colour of the following rocket triangle
+         triangle(rocketx + 15, rockety +15, rocketx, rockety, rocketx - 15, rockety + 15); // A triangle I used for a part of the rocket
+         fill(70,61,61); // Colour of the following rocket rectangle
+         rect(rocketx - 15, rockety + 15, 30, 60);  // A rectangle I used for a part of the rocket
+         fill(252,116,0); // Colour of the following rocket triangle
+         triangle(rocketx + 15, rockety + 75, rocketx, rockety + 90, rocketx - 15, rockety + 75); // A triangle I used for a part of the rocket
+         fill(252,237,0); // Colour of the following rocket triangle
+         triangle(rocketx + 10, rockety + 75, rocketx, rockety + 85, rocketx - 10, rockety + 75); // A triangle I used for a part of the rocket
+         fill(42,42,44); // Colour of the following rocket rectangle
+         rect(rocketx - 4,rockety - 5,8,25); // A rectangle I used for a part of the rocket
+         fill(42,42,44); // Colour of the following rocket rectangle
+         rect(rocketx - 6,rockety + 20,12,8); // A rectangle I used for a part of the rocket
+         fill(70,61,61); // Colour of the following rocket triangle
+         triangle(rocketx + 35, rockety + 55, rocketx + 15, rockety + 35, rocketx + 15, rockety + 55); // A triangle I used for a part of the rocket
+         fill(70,61,61); // Colour of the following rocket triangle
+         triangle(rocketx - 35, rockety + 55, rocketx - 15, rockety + 35, rocketx - 15, rockety + 55); // A triangle I used for a part of the rocket
+     }
+      
+      void mouseClicked() {
+      // If the mouse is clicked when the status equals 2 then make the status equal 0
+        if (status==0) {
+          status = 1;
+        }
+        else if (status == 1) {
+          bulletFired = true; // when the status is 1 and the mouse is clicked, make the bulletfire equal to true because a bullte has just been fired
+          bulletx = rocketx; // makes the bullet start from where the x position of the ship is
+          bullety = rockety-10; // the starting position of the bullet which is at the tip of the rocket
+        }
+        else if (status == 2) {
+          status = 0; // If the mouse is clicked when the status equals 2 then make the status equal 0
+        }
+        else if (status == 3) {
+          status = 0; // If the mouse is clicked when the status equals 3 then make the status equal 0
+        }
+      }
+      
+      void bullet () {
+        fill(19,255,66); // Colour of the following bullet
+        ellipse(bulletx, bullety, 10, 10); // Ellipse used as the bullet
+        bullety = bullety - 10; // Keeps decreasing the value of bullety by 10
+      }
+    
+        void keyPressed() {             //Note: user must click on the canvas first before this will work
+          if ((key == CODED) && (status == 1)) {          
+            if (keyCode == LEFT) {
+              rocketx = rocketx - 10; // Move rocket to the left
+            } else if (keyCode == RIGHT) {
+               rocketx = rocketx + 10;  // Move rocket to the right
+            } else if (keyCode == UP) {
+               rockety = rockety - 10;  // Move rocket upwards
+               score = score + 10;
+              } 
+          }    
+        }
+    
+      void asteroid(float x, float y) {
+        fill(#9D6702);  // Colour of the asteroids
+        ellipse(x,y,40,29); // Ellipse used to draw the asteroids
+      }
+  </script>
+  <canvas id="Canvas1" style="border: 1px solid black;"></canvas>
+  </div>
+</div>
+</body>
+</html>
